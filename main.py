@@ -1,7 +1,7 @@
 import time
 import copy
 
-from api.api_citybikewien import CitybikeWienApi
+from api.api_wienmobilrad import WienMobilRadApi
 from api.api_oebb import OeBBApi
 from api.api_wrlinien import WrLinienApi
 from api.api_met import METApi
@@ -16,7 +16,7 @@ class NoDataException(Exception):
     pass
 
 
-def _merge_api_data(wrlinien, oebb, citybikewien):
+def _merge_api_data(wrlinien, oebb, wienmobilrad):
     # merge wrlinien and oebb
     unmerged_stations = copy.deepcopy(wrlinien['stations'] if 'stations' in wrlinien else []) + oebb  # do not make changes to original dicts
     stations = []
@@ -29,18 +29,18 @@ def _merge_api_data(wrlinien, oebb, citybikewien):
         if exists is False:
             stations.append(unmerged_station)
 
-    # merge citybikewien to merged
-    for bike_station in citybikewien:
+    # merge wienmobilrad to merged
+    for bike_station in wienmobilrad:
         exists = False
         for station in stations:
             if bike_station['name'] == station['name']:
-                station['citybikewien'] = bike_station
+                station['wienmobilrad'] = bike_station
                 exists = True
                 break
         if not exists:
-            stations.append({  # add a new station only for citybikewien to stations
+            stations.append({  # add a new station only for wienmobilrad to stations
                 'name': bike_station['name'],
-                'citybikewien': bike_station
+                'wienmobilrad': bike_station
             })
     return {'stations': stations, 'lastUpdate': wrlinien['lastUpdate'] if bool(wrlinien) else time.localtime()}
 
@@ -54,7 +54,7 @@ def _add_walking_time(transport_data):
     return transport_data
 
 
-def _check_api_data(wrlinien, oebb, citybikewien):
+def _check_api_data(wrlinien, oebb, wienmobilrad):
     error_msg = " Api Data is None. Please check log for more information"
     if wrlinien is None:
         raise NoDataException("Wr Linien" + error_msg)
@@ -62,13 +62,13 @@ def _check_api_data(wrlinien, oebb, citybikewien):
     if oebb is None:
         raise NoDataException("ÖBB" + error_msg)
 
-    if citybikewien is None:
+    if wienmobilrad is None:
         raise NoDataException("Citybikes" + error_msg)
 
 
-def _to_display_data(wrlinien, oebb, citybikewien):
-    _check_api_data(wrlinien, oebb, citybikewien)
-    merged_data = _merge_api_data(wrlinien, oebb, citybikewien)
+def _to_display_data(wrlinien, oebb, wienmobilrad):
+    _check_api_data(wrlinien, oebb, wienmobilrad)
+    merged_data = _merge_api_data(wrlinien, oebb, wienmobilrad)
     walking_time_data = _add_walking_time(merged_data)
     return walking_time_data
 
@@ -93,7 +93,7 @@ def main():
     api_classes = {
         "wrlinien": WrLinienApi,
         "oebb": OeBBApi,
-        "citybikewien": CitybikeWienApi,
+        "wienmobilrad": WienMobilRadApi,
         "met": METApi
     }
     threaded_apis = {}
@@ -125,10 +125,10 @@ def main():
 
             wrlinien_data = threaded_apis['wrlinien'].data if 'wrlinien' in threaded_apis else {}
             oebb_data = threaded_apis['oebb'].data if 'oebb' in threaded_apis else []
-            citybikewien_data = threaded_apis['citybikewien'].data if 'citybikewien' in threaded_apis else {}
+            wienmobilrad_data = threaded_apis['wienmobilrad'].data if 'wienmobilrad' in threaded_apis else {}
             met_data = threaded_apis['met'].data if 'met' in threaded_apis else {}
 
-            traffic_data = _to_display_data(wrlinien_data, oebb_data, citybikewien_data)
+            traffic_data = _to_display_data(wrlinien_data, oebb_data, wienmobilrad_data)
             logger.info("Traffic Data: %s" % traffic_data)
             ui_driver.display(traffic_data, met_data)
 

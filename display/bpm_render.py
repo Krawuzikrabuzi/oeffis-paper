@@ -14,7 +14,7 @@ TITLE_FONT = ImageFont.truetype('fonts/Ubuntu-M.ttf', 24)
 MONO_FONT = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 22)
 # ICON_FONT = ImageFont.truetype('fonts/DejaVuSansMono.ttf', 55)
 
-CITYBIKEWIEN_ASSETS_DIR = 'assets/citybikewien/'
+WIENMOBILRAD_ASSETS_DIR = 'assets/wienmobilrad/'
 YR_ASSETS_DIR = 'assets/met_icons/'
 IONICONS_ASSETS_DIR = 'assets/ionicons/'
 
@@ -69,12 +69,12 @@ def render(display_data, weather_data):
     # Main: Public Transport Data
     y_offset = 55
     for station in sorted(display_data['stations'], key=lambda s: s['name']):
-        if 'citybikewien' in station:
+        if 'wienmobilrad' in station:
             draw_red.text((10, y_offset), _format_addr(station['name'], 23), font=TITLE_FONT, fill=0)
             draw_red.bitmap((307, 4 + y_offset),
-                            Image.open(CITYBIKEWIEN_ASSETS_DIR + 'citybikewien.png').resize((25, 20), Image.ANTIALIAS),
+                            Image.open(WIENMOBILRAD_ASSETS_DIR + 'wienmobilrad.png').resize((25, 20), Image.ANTIALIAS),
                             fill=0)
-            draw_red.text((345, 7 + y_offset), station['citybikewien']['bikes'].zfill(2), font=MONO_FONT, fill=0)
+            draw_red.text((345, 7 + y_offset), station['wienmobilrad']['bikes'].zfill(2), font=MONO_FONT, fill=0)
         else:
             draw_red.text((10, y_offset), _format_addr(station['name'], 26), font=TITLE_FONT, fill=0)
 

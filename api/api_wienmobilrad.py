@@ -8,14 +8,14 @@ import time
 logger = get_logger(__name__)
 
 
-class CitybikeWienApi:
+class WienMobilRadApi:
     """
-    Get updates to stations from citybikewien.at API and parse to an `array` of `dict`s,
+    Get updates to stations from wienmobilrad.at API and parse to an `array` of `dict`s,
     then cache the `array` as `self.data`
 
     Input:
     Uses data from `config.json` with the following keys:
-        citybikewien (json, optional):                citybikewien json with the following keys:
+        wienmobilrad (json, optional):                wienmobilrad json with the following keys:
             updateInterval (number):        minimum of how long until the next API call should be made in seconds
             stations (array[json]):         json with station ids and values
                 id (number):                id of station
@@ -24,7 +24,7 @@ class CitybikeWienApi:
     Output:
     self.data: `None` or `array` with items of `dict` with the following keys:
         id (int):       id of the station
-        status (str):   status code of station from citybikewien.at API
+        status (str):   status code of station from wienmobilrad.at API
         name (str):     name of station, used to merge with other traffic data
         bikes (int):    number of available bikes at station
 
@@ -51,27 +51,27 @@ class CitybikeWienApi:
             conf = get_config()
             if self.nextUpdate <= time.time():  # only update when needed
                 self._get_data()
-                self.nextUpdate = time.time() + conf['api']['citybikewien']['updateInterval']
+                self.nextUpdate = time.time() + conf['api']['wienmobilrad']['updateInterval']
         except Exception as err:
             import sys
             self.exc_info = sys.exc_info()
 
     def _get_data(self):
         try:
-            res = requests.get('http://dynamisch.citybikewien.at/citybike_xml.php')
+            res = requests.get('http://dynamisch.wienmobilrad.at/citybike_xml.php')
         except RequestException or HTTPError:  # retry on error
             logger.error("Caught RequestException")
-            res = requests.get('http://dynamisch.citybikewien.at/citybike_xml.php')
+            res = requests.get('http://dynamisch.wienmobilrad.at/citybike_xml.php')
         res.raise_for_status()
         root = ET.fromstring(res.text)
-        citybikewien_data = []
+        wienmobilrad_data = []
 
-        # extract only wanted stations and parse to citybikewien dict
+        # extract only wanted stations and parse to wienmobilrad dict
         conf = get_config()
-        stations = conf['api']['citybikewien']['stations']
+        stations = conf['api']['wienmobilrad']['stations']
         for station_xml in root.findall('station'):
             if station_xml.find('id').text in list(map(lambda s: str(s['id']), stations)):
-                citybikewien_data.append({
+                wienmobilrad_data.append({
                     'id': station_xml.find('id').text,
                     'name': station_xml.find('name').text,
                     'bikes': station_xml.find('free_bikes').text,
@@ -81,10 +81,10 @@ class CitybikeWienApi:
         # rename stations to names from config, so they can be mapped with other api data by name
         for conf_station in stations:
             if 'rename' in conf_station:
-                for station in citybikewien_data:
+                for station in wienmobilrad_data:
                     if station['id'] == str(conf_station['id']):
                         station['name'] = conf_station['rename']
                         break
 
-        logger.debug("updated data: %s" % citybikewien_data)
-        self.data = citybikewien_data
+        logger.debug("updated data: %s" % wienmobilrad_data)
+        self.data = wienmobilrad_data

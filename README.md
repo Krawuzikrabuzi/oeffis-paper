@@ -19,7 +19,7 @@ more pictures in the [pics](pics) folder
 - Displays ÖBB and Wiener Linien public transport times, Citybike Wien station capacities and weather at a glance
 - Intuitive UI, see time, stations with their lines and weather on a 7.5 inch E-ink screen
 - Config file for easier configuring without changing code
-- Citybike Wien API for CitybikeWien station data, written in Python3
+- Citybike Wien API for WienMobilRad station data, written in Python3
 - [juliuste's oebb](https://github.com/juliuste/oebb/) for getting the ETA of the upcoming ÖBB trains as a countdown in minutes
 - Wiener Linien API for getting the ETA of upcoming busses, trams or metros as a countdown in minutes, written in Python3
 - yr.no API for weather data, written in Python3
@@ -66,7 +66,7 @@ Descriptions to the different key-value pairs can be found in the respective cla
         * `time` (int) - how long it takes to walk to that station in minutes
 
 * `api` (json) - api relevant configurations
-    * `citybikewien` (json, optional) - citybikewien configurations 
+    * `wienmobilrad` (json, optional) - wienmobilrad configurations 
         * `updateInterval`(int) - minimum of how long until the next API call should be made in seconds
         * `stations` (array[json]) - jsons with station ids and values
             * `id` (int) - id of station ([see Citybike Wien Data](#citybike-wien-data-(optional)))
@@ -84,7 +84,7 @@ Descriptions to the different key-value pairs can be found in the respective cla
     * `wrlinien` (json, optional) - Wiener Linien configurations
         * `updateInterval` (int) - minimum of how long until the next API call should be made in seconds
         * `key` (string) - Wiener Linien API key ([see Wiener Linien Data](#wiener-linien-data))
-        * `rbls` (array[int]) - Array of rbls (Wiener Linien station ids, see below)
+        * `stopIds` (array[int]) - Array of stopIds (Wiener Linien station ids, see below)
 
     * `met` (json, optional) - yr.no configurations
         * `updateInterval` (int) - minimum of how long until the next API call should be made in seconds
@@ -94,7 +94,7 @@ Descriptions to the different key-value pairs can be found in the respective cla
         
 
 #### Citybike Wien Data (optional)
-The Citybike Wien station names and id's can be extracted from [CitybikeWien Liste](http://www.cbw.at/liste.php).
+The Citybike Wien station names and id's can be extracted from [WienMobilRad Liste](http://www.cbw.at/liste.php).
 The `id` can be found left to the station's name. Example Station Rathausplatz: `110 RATHAUSPLATZ` therefore `"id": 110`.
 
 #### ÖBB Data
@@ -103,10 +103,10 @@ To get the necessary ÖBB Station IDs use [djaffry/oebb-stations](https://github
 #### Wiener Linien Data
 **Important**: You will need a _Wiener Linien API Key_ to access the Wiener Linien API. They are free and you can apply for one using [this form](https://go.gv.at/l9ogdechtzeitdatenwienerlinienkeyanforderung).
 
-To get the RBL to your station, you have to look them up in the `csv` files at [data.gv.at](https://www.data.gv.at/katalog/dataset/stadt-wien_wienerlinienechtzeitdaten).
-By looking up your _HALTESTELLEN_ID_ in `csv-haltestellen` and the _LINIEN_id_ in `csv-linien` you can defer the right row for the _RBL_NUMMER_ (`rbl`) in `csv-steige`.
+To get the StopID to your station, you have to look them up in the `csv` files at [data.gv.at](https://www.data.gv.at/katalog/dataset/stadt-wien_wienerlinienechtzeitdaten).
+By looking up your _HALTESTELLEN_ID_ in `csv-haltestellen` and the _LINIEN_id_ in `csv-linien` you can defer the right row for the _StopID_ (`stopId`) in `csv-steige`.
 
-Or have a look here: https://till.mabe.at/rbl/
+Or have a look here: https://till.mabe.at/stopId/
 
 #### YR.NO Data
 To find the right city, province and country name, just search for your location at [yr.no](https://www.yr.no/), 

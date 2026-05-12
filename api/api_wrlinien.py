@@ -24,7 +24,7 @@ class WrLinienApi(BaseApi):
         try:
             res = requests.get(
                 'https://www.wienerlinien.at/ogd_realtime/monitor',
-                params=[('rbl', rbl) for rbl in conf['api']['wrlinien']['rbls']]
+                params=[('stopId', stopId) for stopId in conf['api']['wrlinien']['stopIds']]
             )
             res.raise_for_status()
         except (RequestException, HTTPError) as e:
