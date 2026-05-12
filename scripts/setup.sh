@@ -184,22 +184,23 @@ echo ""
 echo "### downloading third party assets ###"
 echo ""
 
-echo "download latest yr.no icons"
-YR_ICONS_DIR="../assets/yr"
+echo "download met.no weather icons"
+YR_ICONS_DIR="../assets/yr_icons"
 mkdir -p ${YR_ICONS_DIR}
-echo "delete old yr.no icons"
-cd ${YR_ICONS_DIR}
-rm -f *.png
-touch yr_timestamp_reference
-for i in `seq 1 50`; do
-    curl -O -J -X GET --header 'Accept: image/png' "https://api.met.no/weatherapi/weathericon/1.1/?content_type=image%2Fpng&symbol=$i"
-    curl -O -J -X GET --header 'Accept: image/png' "https://api.met.no/weatherapi/weathericon/1.1/?content_type=image%2Fpng&is_night=1&symbol=$i"
-done
-# find . -type f ! -newer yr_timestamp_reference ! -name "*.png" ! -name "$0" -delete
-echo "clean up"
-find . -type f -newer yr_timestamp_reference ! -iname \*.png -delete
-rm -f yr_timestamp_reference
-cd - >> /dev/null
+echo "delete old icons"
+rm -f ${YR_ICONS_DIR}/*.png
+
+echo "fetching icon list from GitHub..."
+curl -s "https://api.github.com/repos/metno/weathericons/contents/weather/png" | \
+    grep '"download_url"' | \
+    sed 's/.*"download_url": "\(.*\)".*/\1/' | \
+    while read url; do
+        filename=$(basename "$url")
+        echo "Downloading $filename..."
+        curl -s -o "${YR_ICONS_DIR}/${filename}" "$url"
+    done
+
+echo "icons downloaded!"
 
 
 echo ""

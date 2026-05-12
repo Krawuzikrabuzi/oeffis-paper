@@ -74,15 +74,12 @@
 
     "wrlinien": {
       "updateInterval": 50,
-      "key": "YOUR-KEY-HERE",
       "rbls": [4110, 4119, 4264, 4259, 2709, 345, 2716, 649]
     },
-
     "yrno": {
       "updateInterval": 3600,
-      "city": "Vienna",
-      "province": "Vienna",
-      "country": "Austria"
+      "lat": 48.2093,
+      "lon": 16.3781
     }
   }
 }

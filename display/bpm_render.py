@@ -15,7 +15,7 @@ MONO_FONT = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 22)
 # ICON_FONT = ImageFont.truetype('fonts/DejaVuSansMono.ttf', 55)
 
 CITYBIKEWIEN_ASSETS_DIR = 'assets/citybikewien/'
-YR_ASSETS_DIR = 'assets/yr/'
+YR_ASSETS_DIR = 'assets/yr_icons/'
 IONICONS_ASSETS_DIR = 'assets/ionicons/'
 
 
@@ -123,28 +123,27 @@ def render(display_data, weather_data):
             if not (int(DISPLAY_WIDTH / weather_cols) + x_offset + 1 >= DISPLAY_WIDTH):
                 draw_red.rectangle(((int(DISPLAY_WIDTH / weather_cols) + x_offset, 564 + 3),
                                     (int(DISPLAY_WIDTH / weather_cols) + 1 + x_offset, DISPLAY_HEIGHT - 3)), fill=255)
-            draw_red.text((10 + x_offset, fst_row_height), time.strftime("%H:%M", weather_data['forecast'][i]['time']['from']),
+
+            draw_red.text((10 + x_offset, fst_row_height),
+                          time.strftime("%H:%M", weather_data['forecast'][i]['time']['from']),
                           font=MONO_FONT, fill=255)
             draw_red.text((int(DISPLAY_WIDTH / weather_cols) - 74 + x_offset, fst_row_height),
-                          weather_data['forecast'][i]['celsius'].rjust(3) + '°C', font=MONO_FONT, fill=255)
+                          weather_data['forecast'][i]['celsius'].rjust(3) + '°C',
+                          font=MONO_FONT, fill=255)
 
-            weather_id = str(weather_data['forecast'][i]['symbol']['id']).zfill(2)
-            is_night = weather_data['sun']['rise'] > time.localtime() > weather_data['sun'][
-                'set']  # check if current time is between sunset and sunrise
-            icon = YR_ASSETS_DIR + weather_id + (is_night if '' else 'n') + '.png'  # get specific icon from assets folder
+            # neues Icon-Handling: symbol_code statt numerischer ID
+            symbol_code = weather_data['forecast'][i]['symbol']['id']  # z.B. "cloudy", "rain"
+            icon_path = YR_ASSETS_DIR + symbol_code + '.png'
             try:
-                img = Image.open(icon)
-            except FileNotFoundError:  # if there is no night icon for the weather type, then use day time variant instead
-                try:
-                    img = Image.open(YR_ASSETS_DIR + weather_id + '.png')
-                except FileNotFoundError as err:
-                    logger.error(
-                        "No YR icon named %s found! Have you run the setup script?" % (YR_ASSETS_DIR + weather_id + '.png'))
-                    raise err
-            img = img.convert("RGBA").resize((35, 35), Image.ANTIALIAS)
-            draw_red.bitmap((10 + x_offset, snd_row_height - 2), img, fill=255)
+                img = Image.open(icon_path)
+                img = img.convert("RGBA").resize((35, 35), Image.LANCZOS)
+                draw_red.bitmap((10 + x_offset, snd_row_height - 2), img, fill=255)
+            except FileNotFoundError:
+                logger.warning("No icon found for symbol: %s" % symbol_code)
+
             draw_red.text((int(DISPLAY_WIDTH / weather_cols) - 99 + x_offset, snd_row_height),
-                          str(weather_data['forecast'][i]['wind']['mps']).rjust(3) + "km/h", font=MONO_FONT, fill=255)
+                          str(weather_data['forecast'][i]['wind']['mps']).rjust(3) + "km/h",
+                          font=MONO_FONT, fill=255)
 
             x_offset = x_offset + int(DISPLAY_WIDTH / weather_cols)
 

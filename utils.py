@@ -14,7 +14,7 @@ def get_config():
     """
     global conf_cache
     if conf_cache is None:
-        with open('config.json', 'r') as f:
+        with open('config.json', 'r', encoding='utf-8') as f:
             conf_cache = json.load(f)
     return conf_cache
 
