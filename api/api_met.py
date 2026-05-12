@@ -1,4 +1,4 @@
-# api/api_yrno.py
+# api/api_met.py
 import requests
 from requests import RequestException, HTTPError
 from utils import get_config, get_logger
@@ -8,15 +8,15 @@ import time
 logger = get_logger(__name__)
 
 
-class YRNOApi(BaseApi):
+class METApi(BaseApi):
 
     def _get_update_interval(self):
-        return get_config()['api']['yrno']['updateInterval']
+        return get_config()['api']['met']['updateInterval']
 
     def _get_data(self):
         conf = get_config()
-        lat = conf['api']['yrno']['lat']
-        lon = conf['api']['yrno']['lon']
+        lat = conf['api']['met']['lat']
+        lon = conf['api']['met']['lon']
 
         try:
             res = requests.get(

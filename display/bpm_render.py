@@ -15,7 +15,7 @@ MONO_FONT = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 22)
 # ICON_FONT = ImageFont.truetype('fonts/DejaVuSansMono.ttf', 55)
 
 CITYBIKEWIEN_ASSETS_DIR = 'assets/citybikewien/'
-YR_ASSETS_DIR = 'assets/yr_icons/'
+YR_ASSETS_DIR = 'assets/met_icons/'
 IONICONS_ASSETS_DIR = 'assets/ionicons/'
 
 

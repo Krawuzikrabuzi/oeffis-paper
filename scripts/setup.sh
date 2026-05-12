@@ -185,7 +185,7 @@ echo "### downloading third party assets ###"
 echo ""
 
 echo "download met.no weather icons"
-YR_ICONS_DIR="../assets/yr_icons"
+YR_ICONS_DIR="../assets/met_icons"
 mkdir -p ${YR_ICONS_DIR}
 echo "delete old icons"
 rm -f ${YR_ICONS_DIR}/*.png

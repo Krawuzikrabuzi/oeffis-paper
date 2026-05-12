@@ -86,7 +86,7 @@ Descriptions to the different key-value pairs can be found in the respective cla
         * `key` (string) - Wiener Linien API key ([see Wiener Linien Data](#wiener-linien-data))
         * `rbls` (array[int]) - Array of rbls (Wiener Linien station ids, see below)
 
-    * `yrno` (json, optional) - yr.no configurations
+    * `met` (json, optional) - yr.no configurations
         * `updateInterval` (int) - minimum of how long until the next API call should be made in seconds
         * `city` (string) - name of the city ([see YR.NO Data](#yr.no-data))
         * `province` (string) - name of the province ([see YR.NO Data](#yr.no-data))

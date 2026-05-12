@@ -4,7 +4,7 @@ import copy
 from api.api_citybikewien import CitybikeWienApi
 from api.api_oebb import OeBBApi
 from api.api_wrlinien import WrLinienApi
-from api.api_yrno import YRNOApi
+from api.api_met import METApi
 from worker import Worker
 from display.display_driver import UIDriver
 from utils import get_config, get_logger
@@ -94,7 +94,7 @@ def main():
         "wrlinien": WrLinienApi,
         "oebb": OeBBApi,
         "citybikewien": CitybikeWienApi,
-        "yrno": YRNOApi
+        "met": METApi
     }
     threaded_apis = {}
 
@@ -126,11 +126,11 @@ def main():
             wrlinien_data = threaded_apis['wrlinien'].data if 'wrlinien' in threaded_apis else {}
             oebb_data = threaded_apis['oebb'].data if 'oebb' in threaded_apis else []
             citybikewien_data = threaded_apis['citybikewien'].data if 'citybikewien' in threaded_apis else {}
-            yrno_data = threaded_apis['yrno'].data if 'yrno' in threaded_apis else {}
+            met_data = threaded_apis['met'].data if 'met' in threaded_apis else {}
 
             traffic_data = _to_display_data(wrlinien_data, oebb_data, citybikewien_data)
             logger.info("Traffic Data: %s" % traffic_data)
-            ui_driver.display(traffic_data, yrno_data)
+            ui_driver.display(traffic_data, met_data)
 
             _wait_for_next_update(last_update)
 
