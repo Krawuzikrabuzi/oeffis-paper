@@ -1,3 +1,4 @@
+from pydoc import text
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -10,8 +11,17 @@ DISPLAY_HEIGHT = 640
 DISPLAY_WIDTH = 384
 DISPLAY_SIZE = (DISPLAY_WIDTH, DISPLAY_HEIGHT)
 
+
+HEADER_HEIGHT = 42
+HEADER_PADDING_X = 10
+HEADER_PADDING_Y = 10
+
 TITLE_FONT = ImageFont.truetype('fonts/Ubuntu-M.ttf', 24)
 MONO_FONT = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 22)
+
+
+WEATHER_FONT_SMALL = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 20)
+WEATHER_FONT_LARGE = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 28)
 # ICON_FONT = ImageFont.truetype('fonts/DejaVuSansMono.ttf', 55)
 
 WIENMOBILRAD_ASSETS_DIR = 'assets/wienmobilrad/'
@@ -56,15 +66,21 @@ def render(display_data, weather_data):
     draw_red = ImageDraw.Draw(image_red)
     draw_red.fontmode = "L"  # less antialias of fonts
 
-    # Header: Title and Server Time
-    draw_red.rectangle(((0, 0), (DISPLAY_WIDTH, 42)), fill=0)
-    draw_red.text((10, 10), conf['display']['title'], font=TITLE_FONT, fill=255)
 
-    minute_val = time.strftime("%M", display_data['lastUpdate'])
-    hour_val = time.strftime("%H", display_data['lastUpdate'])
-    draw_red.text((305, 10), hour_val, font=TITLE_FONT, fill=255)
-    draw_red.text((336, 10), ":", font=TITLE_FONT, fill=255)
-    draw_red.text((345, 10), minute_val.zfill(2), font=TITLE_FONT, fill=255)
+    draw_red.rectangle(((0, 0), (DISPLAY_WIDTH, HEADER_HEIGHT)), fill=0)
+
+    HEADER_CENTER_Y = HEADER_HEIGHT // 2
+
+    time_text = time.strftime("%H:%M", display_data['lastUpdate'])
+    _, time_y = _centered_text_pos(draw_red, time_text, TITLE_FONT, center_x=0, center_y=HEADER_CENTER_Y)
+    draw_red.text((HEADER_PADDING_X, time_y), time_text, font=TITLE_FONT, fill=255)
+
+    date_text = time.strftime("%d/%m/%Y", display_data['lastUpdate'])
+    bbox = draw_red.textbbox((0, 0), date_text, font=TITLE_FONT)
+    date_x = DISPLAY_WIDTH - HEADER_PADDING_X - (bbox[2] - bbox[0])
+    _, date_y = _centered_text_pos(draw_red, date_text, TITLE_FONT, center_x=0, center_y=HEADER_CENTER_Y)
+    draw_red.text((date_x, date_y), date_text, font=TITLE_FONT, fill=255)
+
 
     # Main: Public Transport Data
     y_offset = 55
@@ -115,38 +131,52 @@ def render(display_data, weather_data):
     # Footer: Weather data
     if bool(weather_data):
         draw_red.rectangle(((0, 564), (DISPLAY_WIDTH, DISPLAY_HEIGHT)), fill=0)
-        fst_row_height = 568
-        snd_row_height = 598
-        weather_cols = 2
         x_offset = 0
-        for i in range(0, weather_cols):
-            if not (int(DISPLAY_WIDTH / weather_cols) + x_offset + 1 >= DISPLAY_WIDTH):
-                draw_red.rectangle(((int(DISPLAY_WIDTH / weather_cols) + x_offset, 564 + 3),
-                                    (int(DISPLAY_WIDTH / weather_cols) + 1 + x_offset, DISPLAY_HEIGHT - 3)), fill=255)
+        weahter_row_start = 568
 
-            draw_red.text((10 + x_offset, fst_row_height),
-                          time.strftime("%H:%M", weather_data['forecast'][i]['time']['from']),
-                          font=MONO_FONT, fill=255)
-            draw_red.text((int(DISPLAY_WIDTH / weather_cols) - 74 + x_offset, fst_row_height),
-                          weather_data['forecast'][i]['celsius'].rjust(3) + '°C',
-                          font=MONO_FONT, fill=255)
+        WEATHER_FOOTER_CENTER_Y = weahter_row_start + (DISPLAY_HEIGHT - weahter_row_start) // 2
+        TEMP_ROW_Y = weahter_row_start + (DISPLAY_HEIGHT - weahter_row_start) // 3
+        WIND_ROW_Y = weahter_row_start + (DISPLAY_HEIGHT - weahter_row_start) * 2 // 3
+        RIGHT_MARGIN = DISPLAY_WIDTH - 10
+        RIGHT_COLUMN_GAP = 4
 
-            # neues Icon-Handling: symbol_code statt numerischer ID
-            symbol_code = weather_data['forecast'][i]['symbol']['id']  # z.B. "cloudy", "rain"
-            icon_path = YR_ASSETS_DIR + symbol_code + '.png'
-            try:
-                img = Image.open(icon_path)
-                img = img.convert("RGBA").resize((35, 35), Image.LANCZOS)
-                draw_red.bitmap((10 + x_offset, snd_row_height - 2), img, fill=255)
-            except FileNotFoundError:
-                logger.warning("No icon found for symbol: %s" % symbol_code)
+        ICON_MARGIN = 12
+        footer_height = DISPLAY_HEIGHT - weahter_row_start
+        symbol_height = footer_height - ICON_MARGIN * 2
+        ICON_X = 10 + x_offset
+        ICON_Y = weahter_row_start + (footer_height - symbol_height) // 2
 
-            draw_red.text((int(DISPLAY_WIDTH / weather_cols) - 99 + x_offset, snd_row_height),
-                          str(weather_data['forecast'][i]['wind']['mps']).rjust(3) + "km/h",
-                          font=MONO_FONT, fill=255)
+        symbol_code = weather_data['forecast'][0]['symbol']['id']
+        icon_path = YR_ASSETS_DIR + symbol_code + '.png'
 
-            x_offset = x_offset + int(DISPLAY_WIDTH / weather_cols)
+        try:
+            img = Image.open(icon_path)
+            img = img.convert("RGBA").resize((symbol_height, symbol_height), Image.LANCZOS)
+            draw_red.bitmap((ICON_X, ICON_Y), img, fill=255)
+        except FileNotFoundError:
+            logger.warning("No icon found for symbol: %s" % symbol_code)
 
+
+        celsius_text = weather_data['forecast'][0]['celsius']['current'].rjust(3) + '°C'
+        celsius_x = ICON_X + symbol_height - ICON_MARGIN // 2
+        celsius_y = ICON_Y
+        draw_red.text((celsius_x, celsius_y), celsius_text, font=WEATHER_FONT_LARGE, fill=255)
+
+
+        temp_text = (weather_data['forecast'][0]['celsius']['min'].rjust(2) + '°C' + '-' + weather_data['forecast'][0]['celsius']['max'].rjust(2) + '°C')
+        bbox = draw_red.textbbox((0, 0), temp_text, font=WEATHER_FONT_SMALL)
+        temp_x = RIGHT_MARGIN - (bbox[2] - bbox[0])
+        _, temp_y = _centered_text_pos(draw_red, temp_text, WEATHER_FONT_SMALL, center_x=0, center_y=TEMP_ROW_Y)
+        draw_red.text((temp_x, temp_y - RIGHT_COLUMN_GAP), temp_text, font=WEATHER_FONT_SMALL, fill=255)
+
+        # Wind
+        wind_text = str(weather_data['forecast'][0]['wind']['mps']).rjust(3) + ' km/h'
+        bbox = draw_red.textbbox((0, 0), wind_text, font=WEATHER_FONT_SMALL)
+        wind_x = RIGHT_MARGIN - (bbox[2] - bbox[0])
+        _, wind_y = _centered_text_pos(draw_red, wind_text, WEATHER_FONT_SMALL, center_x=0, center_y=WIND_ROW_Y)
+        draw_red.text((wind_x, wind_y + RIGHT_COLUMN_GAP), wind_text, font=WEATHER_FONT_SMALL, fill=255)
+        
+        
     return image_black.rotate(90, expand=True), image_red.rotate(90, expand=True)
 
 
@@ -181,3 +211,13 @@ def render_exception(err, err_type, msg_list=None):
             draw_black.text((10, y_offset), line, font=small_mono_font, fill=0)
 
     return image_black, image_red
+
+
+
+def _centered_text_pos(draw, text, font, center_x, center_y):
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x = center_x - text_width // 2
+    y = center_y - text_height // 2 - bbox[1]
+    return x, y

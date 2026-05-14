@@ -42,6 +42,8 @@ class METApi(BaseApi):
         for entry in timeseries[:2]:
             instant = entry['data']['instant']['details']
             next_1h = entry['data'].get('next_1_hours', {})
+            next_6h = entry['data'].get('next_6_hours', {})
+            
             symbol_code = next_1h.get('summary', {}).get('symbol_code', 'unknown')
             precipitation = next_1h.get('details', {}).get('precipitation_amount', 0)
 
@@ -60,7 +62,11 @@ class METApi(BaseApi):
                     'mps': str(round(instant['wind_speed'], 1)),
                     'description': ''
                 },
-                'celsius': str(round(instant['air_temperature']))
+                'celsius': {
+                    'current': str(round(instant['air_temperature'])),
+                    'min': str(round(next_6h.get('details', {}).get('air_temperature_min', instant['air_temperature']))),
+                    'max': str(round(next_6h.get('details', {}).get('air_temperature_max', instant['air_temperature'])))
+                }
             })
 
         logger.debug("retrieved data: %s" % weather_data)
